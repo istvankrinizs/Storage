@@ -1,0 +1,1010 @@
+<!-- ... existing code ... -->
+        /* Nyomtatási nézet optimalizálása csak a címkéhez */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            body.printing-batch #batchPrintSheet,
+            body.printing-batch #batchPrintSheet * {
+                visibility: visible;
+            }
+            body.printing-batch #batchPrintSheet {
+                position: fixed;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 10mm;
+                background: white !important;
+                color: black !important;
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 6mm !important;
+            }
+            body.printing-batch .batch-label-card {
+                border: 1px dashed #64748b !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                background: white !important;
+                color: black !important;
+                box-shadow: none !important;
+            }
+            body:not(.printing-batch) #printLabelArea, 
+            body:not(.printing-batch) #printLabelArea * {
+                visibility: visible;
+            }
+            body:not(.printing-batch) #printLabelArea {
+                position: fixed;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                border: 2px solid #000 !important;
+                box-shadow: none !important;
+                background: white !important;
+                color: black !important;
+            }
+        }
+<!-- ... existing code ... -->
+                    <div>
+                        <h1 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none">
+                            QR-Tár <span class="text-brand-600 dark:text-brand-500">Pro</span>
+                        </h1>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block mt-0.5">
+                            Kép, sorszám és dátum alapú QR-kód nyilvántartó
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Fő nézetváltó fülek (Nyilvántartás vs. QR Generátor) -->
+                <nav class="hidden md:flex items-center bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <button id="navRegistryBtn" onclick="switchMainSection('registry')" class="px-4 py-1.5 rounded-lg text-sm font-semibold bg-white dark:bg-slate-800 text-brand-600 dark:text-brand-400 shadow-sm flex items-center gap-2 transition-all">
+                        <i data-lucide="folder-kanban" class="w-4 h-4"></i>
+                        <span>Nyilvántartás</span>
+                    </button>
+                    <button id="navGeneratorBtn" onclick="switchMainSection('generator')" class="px-4 py-1.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center gap-2 transition-all">
+                        <i data-lucide="wand-2" class="w-4 h-4 text-brand-500"></i>
+                        <span>QR Generátor</span>
+                    </button>
+                </nav>
+
+                <!-- Műveleti gombok -->
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <button onclick="openScannerModal()" class="flex items-center gap-2 px-3 sm:px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-medium rounded-xl shadow-sm transition-all">
+                        <i data-lucide="scan-line" class="w-4 h-4"></i>
+                        <span class="hidden sm:inline">Beolvasás</span>
+                    </button>
+                    
+                    <button onclick="openRecordModal()" class="flex items-center gap-2 px-3 sm:px-4 py-2.5 bg-brand-600 hover:bg-brand-700 active:scale-95 text-white text-sm font-medium rounded-xl shadow-sm transition-all">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span class="hidden sm:inline">Új bejegyzés</span>
+                        <span class="sm:hidden">Új</span>
+                    </button>
+
+                    <!-- Adatmentés / Beállítások menü gomb -->
+<!-- ... existing code ... -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobil nézetváltó sáv -->
+            <div class="flex md:hidden pb-3 pt-1 gap-2">
+                <button id="mobileNavRegistryBtn" onclick="switchMainSection('registry')" class="flex-1 py-2 px-3 rounded-xl text-xs font-semibold bg-brand-600 text-white shadow-sm flex items-center justify-center gap-1.5 transition-all">
+                    <i data-lucide="folder-kanban" class="w-3.5 h-3.5"></i>
+                    <span>Nyilvántartás</span>
+                </button>
+                <button id="mobileNavGeneratorBtn" onclick="switchMainSection('generator')" class="flex-1 py-2 px-3 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 flex items-center justify-center gap-1.5 transition-all">
+                    <i data-lucide="wand-2" class="w-3.5 h-3.5 text-brand-500"></i>
+                    <span>QR Generátor & Címkék</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Fő tartalom: 1. NYILVÁNTARTÁS SZEKCIÓ -->
+    <main id="registrySection" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        
+        <!-- Statisztikai kártyák és Kereső/Szűrő sáv -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+            <!-- Gyors statisztikák -->
+            <div class="lg:col-span-5 grid grid-cols-3 gap-2.5">
+                <div class="bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm flex items-center gap-3">
+                    <div class="p-2.5 bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-xl hidden sm:block">
+                        <i data-lucide="layers" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Összes</p>
+                        <p id="statTotalCount" class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">0</p>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm flex items-center gap-3">
+                    <div class="p-2.5 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-xl hidden sm:block">
+                        <i data-lucide="clock" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Képre vár</p>
+                        <p id="statPendingCount" class="text-lg sm:text-xl font-bold text-amber-600 dark:text-amber-400">0</p>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm flex items-center gap-3">
+                    <div class="p-2.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-xl hidden sm:block">
+                        <i data-lucide="hash" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Következő</p>
+                        <p id="statNextSerial" class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">#001</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kereső, dátumszűrő és nézetváltó -->
+<!-- ... existing code ... -->
+                    <tbody id="recordsTableBody" class="divide-y divide-slate-100 dark:divide-slate-700/70 text-sm">
+                        <!-- Dinamikusan generált táblázatsorok -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- ===================================================================== -->
+    <!-- FŐ TARTALOM: 2. QR-KÓD GENERÁTOR ÉS CÍMKE ELŐKÉSZÍTŐ MODUL            -->
+    <!-- ===================================================================== -->
+    <section id="generatorSection" class="hidden flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        <!-- Fejléc és Al-modul váltó -->
+        <div class="bg-white dark:bg-slate-800 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-700 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2.5">
+                    <span class="px-2.5 py-1 bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-400 text-xs font-bold rounded-lg uppercase tracking-wider">Munkafolyamat Előkészítő</span>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-1.5">QR-kód Generátor és Címke Stúdió</h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Készíts egyedi QR-kódot vagy gyárts előre sorszámozott címkeíveket a későbbi fotózáshoz és leltározáshoz.</p>
+            </div>
+
+            <!-- Al-fül választó (Egyedi vs. Tömeges sorozat) -->
+            <div class="flex bg-slate-100 dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 self-start md:self-auto">
+                <button id="subTabCustomBtn" onclick="switchGeneratorSubTab('custom')" class="px-4 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-slate-800 text-brand-600 dark:text-brand-400 shadow-sm flex items-center gap-2 transition-all">
+                    <i data-lucide="qr-code" class="w-4 h-4"></i>
+                    <span>Egyedi QR-kód</span>
+                </button>
+                <button id="subTabBatchBtn" onclick="switchGeneratorSubTab('batch')" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 flex items-center gap-2 transition-all">
+                    <i data-lucide="layers" class="w-4 h-4 text-emerald-600"></i>
+                    <span>Tömeges Sorszám-sorozat</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- AL-MODUL A: EGYEDI QR-KÓD GENERÁTOR -->
+        <div id="customQrGeneratorPanel" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <!-- Bal oldal: Beállítások -->
+            <div class="lg:col-span-7 bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-700 shadow-sm space-y-5">
+                <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-3">
+                    <i data-lucide="sliders" class="w-4 h-4 text-brand-600"></i>
+                    <span>Tartalom és Megjelenés Testreszabása</span>
+                </h3>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">QR-kód tartalma (Szöveg, URL vagy Egyedi Azonosító) *</label>
+                    <textarea id="customQrContent" rows="3" oninput="renderCustomQrStudio()" placeholder="Írj be szöveget, webcímet (https://...) vagy egyedi sorszámot..."
+                              class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all">https://qr-tar.local/tetel-001</textarea>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        <button type="button" onclick="fillCustomQrPreset('serial')" class="text-xs px-2.5 py-1 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-lg transition-colors">+ Következő sorszám</button>
+                        <button type="button" onclick="fillCustomQrPreset('json')" class="text-xs px-2.5 py-1 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-lg transition-colors">+ QR-Tár strukturált adat</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Opcionális felirat / címke a kód alá</label>
+                    <input type="text" id="customQrCaption" oninput="renderCustomQrStudio()" placeholder="pl. Raktár B-04 / Ellenőrző pont"
+                           class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Méret (<span id="customQrSizeLabel">280</span> px)</label>
+                        <input type="range" id="customQrSize" min="160" max="500" step="20" value="280" oninput="renderCustomQrStudio()"
+                               class="w-full accent-brand-600 cursor-pointer mt-2">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Hibajavítási szint</label>
+                        <select id="customQrLevel" onchange="renderCustomQrStudio()" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            <option value="L">L - Alacsony (7%)</option>
+                            <option value="M" selected>M - Közepes (15% - Ajánlott)</option>
+                            <option value="Q">Q - Magas (25%)</option>
+                            <option value="H">H - Maximális (30% - Ipari környezet)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 pt-1">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Előtér színe (Kód)</label>
+                        <div class="flex items-center gap-2.5 bg-slate-50 dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-700">
+                            <input type="color" id="customQrFgColor" value="#0f172a" oninput="renderCustomQrStudio()" class="w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent">
+                            <span id="customQrFgHex" class="text-xs font-mono text-slate-600 dark:text-slate-300">#0F172A</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Háttér színe</label>
+                        <div class="flex items-center gap-2.5 bg-slate-50 dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-700">
+                            <input type="color" id="customQrBgColor" value="#ffffff" oninput="renderCustomQrStudio()" class="w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent">
+                            <span id="customQrBgHex" class="text-xs font-mono text-slate-600 dark:text-slate-300">#FFFFFF</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jobb oldal: Élő előnézet és Műveletek -->
+            <div class="lg:col-span-5 bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-700 shadow-sm flex flex-col items-center text-center space-y-5">
+                <div class="w-full flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3">
+                    <span class="text-sm font-bold text-slate-900 dark:text-white">Élő Címke Előnézet</span>
+                    <span class="text-xs px-2.5 py-0.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 font-semibold rounded-full">Kész a mentésre</span>
+                </div>
+
+                <!-- Összeállított előnézeti vászon (QR + opcionális felirat egyben) -->
+                <div class="p-6 bg-slate-50 dark:bg-slate-900/70 rounded-2xl border border-slate-200/80 dark:border-slate-700 flex items-center justify-center w-full min-h-[300px]">
+                    <canvas id="customStudioCompositeCanvas" class="max-w-full h-auto rounded-xl shadow-md"></canvas>
+                </div>
+
+                <!-- Műveleti gombok -->
+                <div class="w-full space-y-2.5">
+                    <button onclick="transferCustomQrToRecordModal()" class="w-full py-3 px-4 bg-brand-600 hover:bg-brand-700 active:scale-95 text-white text-sm font-semibold rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all">
+                        <i data-lucide="arrow-right-circle" class="w-4 h-4"></i>
+                        <span>Átvitel adatrendeléshez (Kép & Dátum csatolása)</span>
+                    </button>
+
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <button onclick="downloadCustomStudioPng()" class="py-2.5 px-3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-800 dark:text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            <span>PNG Letöltés</span>
+                        </button>
+                        <button onclick="copyCustomQrText()" class="py-2.5 px-3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-800 dark:text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors">
+                            <i data-lucide="copy" class="w-4 h-4"></i>
+                            <span>Tartalom másolása</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AL-MODUL B: TÖMEGES QR-KÓD / SORSZÁM-SOROZAT GENERÁTOR (BATCH) -->
+        <div id="batchQrGeneratorPanel" class="hidden space-y-6">
+            <!-- Paraméter beállító sáv -->
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-700 shadow-sm space-y-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-700 pb-3">
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <i data-lucide="list-ordered" class="w-5 h-5 text-emerald-600"></i>
+                        <span>Sorozat paramétereinek megadása</span>
+                    </h3>
+                    <span class="text-xs text-slate-500 dark:text-slate-400">Ideális előcímkézéshez, raktári polcokhoz, munkalapokhoz</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Előtag (Prefix)</label>
+                        <input type="text" id="batchPrefixInput" value="INV-" placeholder="pl. INV-, CSOMAG-"
+                               class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Kezdő sorszám</label>
+                        <input type="number" id="batchStartNumInput" value="1" min="1" max="99999"
+                               class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Darabszám (1–50 db)</label>
+                        <input type="number" id="batchCountInput" value="9" min="1" max="50"
+                               class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Dátum (opcionális)</label>
+                        <input type="date" id="batchDateInput"
+                               class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+
+                    <div>
+                        <button onclick="generateBatchQrSeries()" class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i>
+                            <span>Sorozat generálása</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generált sorozat műveleti sáv és Címkerács -->
+            <div id="batchResultContainer" class="hidden space-y-4">
+                <div class="bg-brand-50/80 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2.5 bg-brand-600 text-white rounded-xl">
+                            <i data-lucide="printer" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h4 id="batchSummaryTitle" class="text-sm font-bold text-slate-900 dark:text-white">9 db címke előkészítve</h4>
+                            <p class="text-xs text-slate-600 dark:text-slate-300">Nyomtasd ki az A4-es ívet, vagy regisztráld előre a kódokat a későbbi fotózáshoz!</p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <button onclick="preRegisterBatchToDB()" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 active:scale-95 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-sm flex items-center gap-2 transition-all">
+                            <i data-lucide="database-zap" class="w-4 h-4"></i>
+                            <span>Előregisztrálás az adatbázisba</span>
+                        </button>
+                        <button onclick="printBatchSheet()" class="px-4 py-2.5 bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 active:scale-95 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-sm flex items-center gap-2 transition-all">
+                            <i data-lucide="printer" class="w-4 h-4"></i>
+                            <span>A4-es Címkeív Nyomtatása</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Nyomtatható címkerács -->
+                <div id="batchPrintSheet" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <!-- Dinamikusan generált címkekártyák -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- MODÁLIS ABLAK 1: Új bejegyzés létrehozása / Szerkesztése              -->
+<!-- ... existing code ... -->
+                    <!-- Bal oldal: Adatmezők -->
+                    <div class="md:col-span-7 space-y-4">
+                        <div id="pendingRecordBanner" class="hidden p-3 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 rounded-xl flex items-center gap-2.5 text-xs text-amber-800 dark:text-amber-200">
+                            <i data-lucide="camera" class="w-4 h-4 text-amber-600 shrink-0"></i>
+                            <span>Ez egy <strong>előregisztrált</strong> QR-kód. Csatold hozzá a fényképet a véglegesítéshez!</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+<!-- ... existing code ... -->
+        let activeDetailRecord = null;
+        let html5QrCodeScanner = null;
+        let isCameraRunning = false;
+        let currentBatchItems = [];
+
+        // --- Inicializálás az oldal betöltésekor ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            initTheme();
+            lucide.createIcons();
+            setupDragAndDrop();
+            
+            // Alapértelmezett dátum beállítása a Batch generátorban
+            const batchDateEl = document.getElementById('batchDateInput');
+            if (batchDateEl) {
+                batchDateEl.value = new Date().toISOString().split('T')[0];
+            }
+            
+            try {
+                await initIndexedDB();
+                await loadRecordsFromDB();
+                renderCustomQrStudio();
+            } catch (error) {
+                console.error('Adatbázis inicializálási hiba:', error);
+                showToast('Hiba történt a helyi adatbázis megnyitásakor.', 'error');
+            }
+<!-- ... existing code ... -->
+        function toggleDataMenu() {
+            document.getElementById('dataMenuDropdown').classList.toggle('hidden');
+        }
+
+        // --- Fő nézetváltás (Nyilvántartás vs. QR Generátor) ---
+        function switchMainSection(section) {
+            const registrySec = document.getElementById('registrySection');
+            const generatorSec = document.getElementById('generatorSection');
+            
+            const navReg = document.getElementById('navRegistryBtn');
+            const navGen = document.getElementById('navGeneratorBtn');
+            const mobReg = document.getElementById('mobileNavRegistryBtn');
+            const mobGen = document.getElementById('mobileNavGeneratorBtn');
+
+            if (section === 'registry') {
+                registrySec.classList.remove('hidden');
+                generatorSec.classList.add('hidden');
+                
+                navReg.className = 'px-4 py-1.5 rounded-lg text-sm font-semibold bg-white dark:bg-slate-800 text-brand-600 dark:text-brand-400 shadow-sm flex items-center gap-2 transition-all';
+                navGen.className = 'px-4 py-1.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center gap-2 transition-all';
+                
+                mobReg.className = 'flex-1 py-2 px-3 rounded-xl text-xs font-semibold bg-brand-600 text-white shadow-sm flex items-center justify-center gap-1.5 transition-all';
+                mobGen.className = 'flex-1 py-2 px-3 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 flex items-center justify-center gap-1.5 transition-all';
+            } else {
+                registrySec.classList.add('hidden');
+                generatorSec.classList.remove('hidden');
+                
+                navGen.className = 'px-4 py-1.5 rounded-lg text-sm font-semibold bg-white dark:bg-slate-800 text-brand-600 dark:text-brand-400 shadow-sm flex items-center gap-2 transition-all';
+                navReg.className = 'px-4 py-1.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center gap-2 transition-all';
+
+                mobGen.className = 'flex-1 py-2 px-3 rounded-xl text-xs font-semibold bg-brand-600 text-white shadow-sm flex items-center justify-center gap-1.5 transition-all';
+                mobReg.className = 'flex-1 py-2 px-3 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 flex items-center justify-center gap-1.5 transition-all';
+                
+                renderCustomQrStudio();
+            }
+            lucide.createIcons();
+        }
+
+        // --- QR Generátor Al-fülek (Egyedi vs. Tömeges) ---
+        function switchGeneratorSubTab(subTab) {
+            const customPanel = document.getElementById('customQrGeneratorPanel');
+            const batchPanel = document.getElementById('batchQrGeneratorPanel');
+            const customBtn = document.getElementById('subTabCustomBtn');
+            const batchBtn = document.getElementById('subTabBatchBtn');
+
+            if (subTab === 'custom') {
+                customPanel.classList.remove('hidden');
+                batchPanel.classList.add('hidden');
+                customBtn.className = 'px-4 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-slate-800 text-brand-600 dark:text-brand-400 shadow-sm flex items-center gap-2 transition-all';
+                batchBtn.className = 'px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 flex items-center gap-2 transition-all';
+            } else {
+                customPanel.classList.add('hidden');
+                batchPanel.classList.remove('hidden');
+                batchBtn.className = 'px-4 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-sm flex items-center gap-2 transition-all';
+                customBtn.className = 'px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 flex items-center gap-2 transition-all';
+                
+                if (currentBatchItems.length === 0) {
+                    generateBatchQrSeries();
+                }
+            }
+            lucide.createIcons();
+        }
+
+        // --- IndexedDB Adatbázis Réteg ---
+<!-- ... existing code ... -->
+        function updateStatistics() {
+            document.getElementById('statTotalCount').textContent = allRecords.length;
+            const pendingCount = allRecords.filter(r => r.status === 'pending' || !r.imageData).length;
+            const pendingEl = document.getElementById('statPendingCount');
+            if (pendingEl) pendingEl.textContent = pendingCount;
+            document.getElementById('statNextSerial').textContent = generateNextSerial();
+        }
+
+        // --- QR-kód generálás segédfüggvények ---
+        function buildQrPayload(record) {
+            // Strukturált, könnyen olvasható és visszakereshető adat a QR-kódban
+            return JSON.stringify({
+                app: 'QRTar',
+                id: record.id,
+                sorszam: record.serial,
+                datum: record.date
+            });
+        }
+
+        function generateQrDataUrl(payloadText, size = 250, level = 'M', fg = '#0f172a', bg = '#ffffff') {
+            const qr = new QRious({
+                value: payloadText,
+                size: size,
+                level: level,
+                background: bg,
+                foreground: fg
+            });
+            return qr.toDataURL('image/png');
+        }
+
+        // Függőben lévő (előregisztrált, még kép nélküli) rekordok helyőrző képe
+        function getPendingPlaceholderImage(serial) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 600;
+            canvas.height = 400;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#fffbeb';
+            ctx.fillRect(0, 0, 600, 400);
+
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 4;
+            ctx.setLineDash([12, 8]);
+            ctx.strokeRect(24, 24, 552, 352);
+            ctx.setLineDash([]);
+
+            ctx.fillStyle = '#b45309';
+            ctx.font = 'bold 28px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('FÜGGŐBEN • KÉPRE VÁR', 300, 175);
+
+            ctx.fillStyle = '#78350f';
+            ctx.font = 'bold 22px Inter, sans-serif';
+            ctx.fillText(`Előregisztrált sorszám: ${serial}`, 300, 220);
+
+            ctx.fillStyle = '#92400e';
+            ctx.font = '16px Inter, sans-serif';
+            ctx.fillText('Olvasd be a QR-kódot a fénykép csatolásához!', 300, 265);
+
+            return canvas.toDataURL('image/png');
+        }
+<!-- ... existing code ... -->
+            if (currentViewMode === 'grid') {
+                gridEl.classList.remove('hidden');
+                tableWrapper.classList.add('hidden');
+                
+                gridEl.innerHTML = filteredRecords.map(rec => {
+                    const qrDataUrl = generateQrDataUrl(buildQrPayload(rec), 180);
+                    const isPending = rec.status === 'pending' || !rec.imageData;
+                    const displayImg = rec.imageData || getPendingPlaceholderImage(rec.serial);
+                    return `
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl border ${isPending ? 'border-amber-300 dark:border-amber-700/70' : 'border-slate-200/80 dark:border-slate-700'} shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col group">
+                            <!-- Kép és lebegő QR bélyegkép -->
+                            <div onclick="${isPending ? `openRecordModal('${rec.id}')` : `openDetailModal('${rec.id}')`}" class="relative h-48 bg-slate-100 dark:bg-slate-900 cursor-pointer overflow-hidden">
+                                <img src="${displayImg}" alt="${escapeHtml(rec.serial)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                
+                                <!-- Sorszám jelvény -->
+                                <span class="absolute top-3 left-3 px-2.5 py-1 bg-slate-900/80 backdrop-blur-md text-white text-xs font-bold rounded-lg shadow-sm">
+                                    ${escapeHtml(rec.serial)}
+                                </span>
+
+                                ${isPending ? `
+                                <span class="absolute top-3 right-3 px-2.5 py-1 bg-amber-500 text-white text-[11px] font-bold rounded-lg shadow-sm flex items-center gap-1">
+                                    <i data-lucide="clock" class="w-3 h-3"></i>
+                                    Képre vár
+                                </span>` : ''}
+
+                                <!-- QR-kód sarok előnézet -->
+                                <div class="absolute bottom-2.5 right-2.5 bg-white p-1.5 rounded-xl shadow-md border border-slate-100">
+                                    <img src="${qrDataUrl}" alt="QR" class="w-14 h-14">
+                                </div>
+                            </div>
+
+                            <!-- Adatok -->
+                            <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
+                                <div onclick="${isPending ? `openRecordModal('${rec.id}')` : `openDetailModal('${rec.id}')`}" class="cursor-pointer">
+                                    <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                                            ${escapeHtml(rec.date)}
+                                        </span>
+                                    </div>
+                                    <p class="text-sm font-medium text-slate-800 dark:text-slate-100 line-clamp-2">
+                                        ${rec.note ? escapeHtml(rec.note) : '<span class="text-slate-400 italic">Nincs megjegyzés</span>'}
+                                    </p>
+                                </div>
+
+                                <!-- Műveleti lábléc -->
+                                <div class="pt-2.5 border-t border-slate-100 dark:border-slate-700/80 flex items-center justify-between">
+                                    ${isPending ? `
+                                    <button onclick="openRecordModal('${rec.id}')" class="text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1">
+                                        <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+                                        <span>Kép csatolása</span>
+                                    </button>` : `
+                                    <button onclick="openDetailModal('${rec.id}')" class="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1">
+                                        <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+                                        <span>Részletek / Címke</span>
+                                    </button>`}
+                                    <div class="flex items-center gap-1">
+                                        <button onclick="openRecordModal('${rec.id}')" class="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors" title="Szerkesztés">
+                                            <i data-lucide="pencil" class="w-4 h-4"></i>
+                                        </button>
+                                        <button onclick="promptDeleteRecord('${rec.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors" title="Törlés">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                gridEl.classList.add('hidden');
+                tableWrapper.classList.remove('hidden');
+
+                tableBody.innerHTML = filteredRecords.map(rec => {
+                    const qrDataUrl = generateQrDataUrl(buildQrPayload(rec), 120);
+                    const isPending = rec.status === 'pending' || !rec.imageData;
+                    const displayImg = rec.imageData || getPendingPlaceholderImage(rec.serial);
+                    return `
+                        <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition-colors">
+                            <td class="py-3 px-4">
+                                <img onclick="${isPending ? `openRecordModal('${rec.id}')` : `openDetailModal('${rec.id}')`}" src="${displayImg}" alt="Kép" class="w-14 h-14 rounded-xl object-cover cursor-pointer border border-slate-200 dark:border-slate-700">
+                            </td>
+                            <td class="py-3 px-4">
+                                <div onclick="openDetailModal('${rec.id}')" class="bg-white p-1 rounded-lg border border-slate-200 inline-block cursor-pointer">
+                                    <img src="${qrDataUrl}" alt="QR" class="w-12 h-12">
+                                </div>
+                            </td>
+                            <td class="py-3 px-4 font-bold text-slate-900 dark:text-white">
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2.5 py-1 bg-brand-50 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 rounded-lg text-xs">
+                                        ${escapeHtml(rec.serial)}
+                                    </span>
+                                    ${isPending ? `<span class="px-2 py-0.5 bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300 rounded text-[11px] font-semibold">Képre vár</span>` : ''}
+                                </div>
+                            </td>
+                            <td class="py-3 px-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                                ${escapeHtml(rec.date)}
+                            </td>
+                            <td class="py-3 px-4 text-slate-700 dark:text-slate-200 max-w-xs truncate">
+                                ${rec.note ? escapeHtml(rec.note) : '<span class="text-slate-400 italic">-</span>'}
+                            </td>
+                            <td class="py-3 px-4 text-right whitespace-nowrap">
+                                <div class="inline-flex items-center gap-1">
+                                    <button onclick="openDetailModal('${rec.id}')" class="p-2 text-slate-500 hover:text-brand-600 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors" title="Megnyitás">
+                                        <i data-lucide="eye" class="w-4 h-4"></i>
+                                    </button>
+                                    <button onclick="openRecordModal('${rec.id}')" class="p-2 text-slate-500 hover:text-amber-600 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors" title="Szerkesztés / Kép csatolása">
+                                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                                    </button>
+                                    <button onclick="promptDeleteRecord('${rec.id}')" class="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-colors" title="Törlés">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            lucide.createIcons();
+        }
+
+        // --- Új bejegyzés / Szerkesztés Modális Ablak Kezelése ---
+        function openRecordModal(editId = null, prefillData = null) {
+            const modal = document.getElementById('recordModal');
+            const titleEl = document.getElementById('recordModalTitle');
+            const pendingBanner = document.getElementById('pendingRecordBanner');
+            const form = document.getElementById('recordForm');
+            form.reset();
+            pendingBanner.classList.add('hidden');
+
+            if (editId) {
+                const record = allRecords.find(r => r.id === editId);
+                if (!record) return;
+
+                const isPending = record.status === 'pending' || !record.imageData;
+                if (isPending) {
+                    pendingBanner.classList.remove('hidden');
+                    titleEl.innerHTML = `<i data-lucide="camera" class="w-5 h-5 text-amber-500"></i><span>Fotó csatolása előregisztrált kódhoz (${escapeHtml(record.serial)})</span>`;
+                } else {
+                    titleEl.innerHTML = `<i data-lucide="pencil" class="w-5 h-5 text-brand-600"></i><span>Bejegyzés szerkesztése (${escapeHtml(record.serial)})</span>`;
+                }
+
+                document.getElementById('editRecordId').value = record.id;
+                document.getElementById('serialInput').value = record.serial;
+                document.getElementById('dateInput').value = record.date;
+                document.getElementById('noteInput').value = record.note || '';
+                
+                if (record.imageData) {
+                    currentUploadedImageBase64 = record.imageData;
+                    showImagePreview(record.imageData);
+                } else {
+                    currentUploadedImageBase64 = '';
+                    resetImagePreview();
+                }
+            } else {
+                titleEl.innerHTML = `<i data-lucide="plus-circle" class="w-5 h-5 text-brand-600"></i><span>Új QR-kódos bejegyzés</span>`;
+                document.getElementById('editRecordId').value = '';
+                document.getElementById('serialInput').value = (prefillData && prefillData.serial) ? prefillData.serial : generateNextSerial();
+                document.getElementById('dateInput').value = (prefillData && prefillData.date) ? prefillData.date : new Date().toISOString().split('T')[0];
+                document.getElementById('noteInput').value = (prefillData && prefillData.note) ? prefillData.note : '';
+                
+                currentUploadedImageBase64 = '';
+                resetImagePreview();
+            }
+
+            updateLiveQRPreview();
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+<!-- ... existing code ... -->
+            const recordObj = {
+                id: editId || ('QRT-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase()),
+                serial: serial,
+                date: date,
+                note: note,
+                imageData: currentUploadedImageBase64,
+                status: 'complete',
+                createdAt: existingRecord ? existingRecord.createdAt : Date.now()
+            };
+
+            try {
+                await saveRecordToDB(recordObj);
+                await loadRecordsFromDB();
+                closeRecordModal();
+                showToast(editId ? 'Bejegyzés sikeresen frissítve!' : `Új bejegyzés (${serial}) létrehozva!`, 'success');
+            } catch (error) {
+                console.error('Mentési hiba:', error);
+                showToast('Nem sikerült elmenteni a bejegyzést.', 'error');
+            }
+        }
+
+        // --- Részletek & Nyomtatható Címke Modális Ablak ---
+        function openDetailModal(recordId) {
+            const record = allRecords.find(r => r.id === recordId);
+            if (!record) return;
+
+            activeDetailRecord = record;
+            const isPending = record.status === 'pending' || !record.imageData;
+
+            document.getElementById('detailSerialBadge').textContent = record.serial;
+            document.getElementById('detailDateText').innerHTML = `<i data-lucide="calendar" class="w-4 h-4"></i><span>${escapeHtml(record.date)}</span>`;
+            document.getElementById('detailImage').src = record.imageData || getPendingPlaceholderImage(record.serial);
+            document.getElementById('detailNote').textContent = record.note || (isPending ? 'Előregisztrált QR-kód – még nincs csatolt fénykép.' : 'Nincs megadva megjegyzés ehhez a bejegyzéshez.');
+
+            // Nyomtatható címke adatok
+<!-- ... existing code ... -->
+            if (matchedRecord) {
+                await closeScannerModal();
+                const isPending = matchedRecord.status === 'pending' || !matchedRecord.imageData;
+                if (isPending) {
+                    showToast(`Előregisztrált QR-kód (${matchedRecord.serial}) felismerve! Csatold a fényképet!`, 'info');
+                    openRecordModal(matchedRecord.id);
+                } else {
+                    showToast(`QR-kód felismerve: ${matchedRecord.serial}`, 'success');
+                    openDetailModal(matchedRecord.id);
+                }
+            } else {
+                showToast('A beolvasott QR-kód nem szerepel a nyilvántartásban!', 'error');
+            }
+        }
+
+        async function handleQuickSerialLookup() {
+            const query = document.getElementById('quickSerialLookup').value.trim().toLowerCase();
+            if (!query) return;
+
+            const normalizedQuery = query.startsWith('#') ? query : '#' + query;
+            const matched = allRecords.find(r => 
+                r.serial.toLowerCase() === query || 
+                r.serial.toLowerCase() === normalizedQuery
+            );
+
+            if (matched) {
+                await closeScannerModal();
+                const isPending = matched.status === 'pending' || !matched.imageData;
+                if (isPending) {
+                    openRecordModal(matched.id);
+                } else {
+                    openDetailModal(matched.id);
+                }
+            } else {
+                showToast(`Nem található "${query}" sorszámú bejegyzés.`, 'error');
+            }
+        }
+
+        // =====================================================================
+        // --- QR-KÓD GENERÁTOR ÉS CÍMKE STÚDIÓ LOGIKA (Egyedi & Tömeges)      ---
+        // =====================================================================
+
+        function fillCustomQrPreset(type) {
+            const nextSerial = generateNextSerial();
+            const today = new Date().toISOString().split('T')[0];
+            const contentEl = document.getElementById('customQrContent');
+            const captionEl = document.getElementById('customQrCaption');
+
+            if (type === 'serial') {
+                contentEl.value = nextSerial;
+                captionEl.value = `${nextSerial} • ${today}`;
+            } else if (type === 'json') {
+                contentEl.value = JSON.stringify({
+                    app: 'QRTar',
+                    sorszam: nextSerial,
+                    datum: today
+                });
+                captionEl.value = `${nextSerial} (${today})`;
+            }
+            renderCustomQrStudio();
+        }
+
+        function renderCustomQrStudio() {
+            const canvas = document.getElementById('customStudioCompositeCanvas');
+            if (!canvas) return;
+
+            const content = document.getElementById('customQrContent').value || 'QR-Tár Pro';
+            const caption = document.getElementById('customQrCaption').value.trim();
+            const size = parseInt(document.getElementById('customQrSize').value, 10) || 280;
+            const level = document.getElementById('customQrLevel').value || 'M';
+            const fgColor = document.getElementById('customQrFgColor').value || '#0f172a';
+            const bgColor = document.getElementById('customQrBgColor').value || '#ffffff';
+
+            document.getElementById('customQrSizeLabel').textContent = size;
+            document.getElementById('customQrFgHex').textContent = fgColor.toUpperCase();
+            document.getElementById('customQrBgHex').textContent = bgColor.toUpperCase();
+
+            // Ideiglenes QR vászon generálása QRious segítségével
+            const tempQrCanvas = document.createElement('canvas');
+            new QRious({
+                element: tempQrCanvas,
+                value: content,
+                size: size,
+                level: level,
+                foreground: fgColor,
+                background: bgColor
+            });
+
+            const padding = 24;
+            const captionHeight = caption ? 42 : 0;
+            canvas.width = size + padding * 2;
+            canvas.height = size + padding * 2 + captionHeight;
+
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // QR-kód kirajzolása
+            ctx.drawImage(tempQrCanvas, padding, padding, size, size);
+
+            // Opcionális felirat kirajzolása a kód alá
+            if (caption) {
+                ctx.fillStyle = fgColor;
+                ctx.font = `bold ${Math.max(14, Math.round(size * 0.065))}px Inter, sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(caption, canvas.width / 2, size + padding + captionHeight / 2 - 2, size);
+            }
+        }
+
+        function downloadCustomStudioPng() {
+            const canvas = document.getElementById('customStudioCompositeCanvas');
+            if (!canvas) return;
+            const link = document.createElement('a');
+            link.download = `Egyedi_QR_${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('Egyedi QR-kód PNG formátumban letöltve!', 'success');
+        }
+
+        function copyCustomQrText() {
+            const content = document.getElementById('customQrContent').value;
+            if (!content) return;
+            const tempInput = document.createElement('textarea');
+            tempInput.value = content;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            showToast('QR-kód tartalma a vágólapra másolva!', 'info');
+        }
+
+        function transferCustomQrToRecordModal() {
+            const rawContent = document.getElementById('customQrContent').value.trim();
+            const caption = document.getElementById('customQrCaption').value.trim();
+            let serial = generateNextSerial();
+            let date = new Date().toISOString().split('T')[0];
+            let note = caption || rawContent;
+
+            try {
+                const parsed = JSON.parse(rawContent);
+                if (parsed.sorszam) serial = parsed.sorszam;
+                if (parsed.datum) date = parsed.datum;
+            } catch (e) {
+                // Ha rövid azonosító (max 25 karakter, nem URL), használjuk sorszámként
+                if (rawContent && rawContent.length <= 25 && !rawContent.startsWith('http')) {
+                    serial = rawContent;
+                }
+            }
+
+            switchMainSection('registry');
+            openRecordModal(null, {
+                serial: serial,
+                date: date,
+                note: note
+            });
+            showToast('Adatok átvive az adatrendelő űrlapra. Csatold a képet!', 'info');
+        }
+
+        // --- Tömeges QR-kód / Sorszám-sorozat Generátor (Batch) ---
+        function generateBatchQrSeries() {
+            const prefix = document.getElementById('batchPrefixInput').value.trim();
+            const startNum = parseInt(document.getElementById('batchStartNumInput').value, 10) || 1;
+            let count = parseInt(document.getElementById('batchCountInput').value, 10) || 9;
+            const dateVal = document.getElementById('batchDateInput').value || new Date().toISOString().split('T')[0];
+
+            if (count < 1) count = 1;
+            if (count > 50) {
+                count = 50;
+                document.getElementById('batchCountInput').value = 50;
+                showToast('Egyszerre maximum 50 db címke generálható.', 'info');
+            }
+
+            currentBatchItems = [];
+            const batchTimestamp = Date.now();
+
+            for (let i = 0; i < count; i++) {
+                const num = startNum + i;
+                const paddedNum = String(num).padStart(3, '0');
+                const serial = `${prefix}${paddedNum}`;
+                const id = `QRT-${batchTimestamp}-${paddedNum}`;
+
+                const item = {
+                    id: id,
+                    serial: serial,
+                    date: dateVal,
+                    note: `Előregisztrált sorozat (${serial})`,
+                    imageData: '',
+                    status: 'pending',
+                    createdAt: batchTimestamp + i
+                };
+
+                item.qrDataUrl = generateQrDataUrl(buildQrPayload(item), 200, 'M');
+                currentBatchItems.push(item);
+            }
+
+            renderBatchGrid();
+            showToast(`${count} db sorszámozott QR-címke sikeresen legenerálva!`, 'success');
+        }
+
+        function renderBatchGrid() {
+            const container = document.getElementById('batchResultContainer');
+            const sheet = document.getElementById('batchPrintSheet');
+            const summaryTitle = document.getElementById('batchSummaryTitle');
+
+            if (currentBatchItems.length === 0) {
+                container.classList.add('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+            const firstSerial = currentBatchItems[0].serial;
+            const lastSerial = currentBatchItems[currentBatchItems.length - 1].serial;
+            summaryTitle.textContent = `${currentBatchItems.length} db címke előkészítve (${firstSerial} – ${lastSerial})`;
+
+            sheet.innerHTML = currentBatchItems.map(item => `
+                <div class="batch-label-card bg-white text-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl p-4 flex items-center gap-3.5 shadow-sm relative">
+                    <img src="${item.qrDataUrl}" alt="${escapeHtml(item.serial)}" class="w-20 h-20 shrink-0">
+                    <div class="min-w-0 flex-1">
+                        <div class="text-[9px] font-bold uppercase tracking-widest text-slate-400">QR-TÁR CÍMKE</div>
+                        <div class="text-base font-black text-slate-900 truncate">${escapeHtml(item.serial)}</div>
+                        <div class="text-xs font-medium text-slate-600 mt-0.5">${escapeHtml(item.date)}</div>
+                        <div class="text-[10px] text-slate-400 mt-1 truncate">ID: ${item.id.slice(-8)}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function preRegisterBatchToDB() {
+            if (currentBatchItems.length === 0) return;
+
+            let savedCount = 0;
+            let skippedCount = 0;
+
+            try {
+                for (const item of currentBatchItems) {
+                    const alreadyExists = allRecords.some(r => r.serial.toLowerCase() === item.serial.toLowerCase());
+                    if (alreadyExists) {
+                        skippedCount++;
+                        continue;
+                    }
+
+                    const dbRecord = {
+                        id: item.id,
+                        serial: item.serial,
+                        date: item.date,
+                        note: item.note,
+                        imageData: '',
+                        status: 'pending',
+                        createdAt: item.createdAt
+                    };
+                    await saveRecordToDB(dbRecord);
+                    savedCount++;
+                }
+
+                await loadRecordsFromDB();
+                
+                if (savedCount > 0) {
+                    showToast(`${savedCount} db QR-kód előregisztrálva a nyilvántartásba!${skippedCount > 0 ? ` (${skippedCount} már létezett)` : ''}`, 'success');
+                } else {
+                    showToast('A sorozat összes sorszáma már szerepel az adatbázisban.', 'info');
+                }
+            } catch (error) {
+                console.error('Előregisztrálási hiba:', error);
+                showToast('Hiba történt az előregisztrálás során.', 'error');
+            }
+        }
+
+        function printBatchSheet() {
+            if (currentBatchItems.length === 0) return;
+            document.body.classList.add('printing-batch');
+            window.print();
+            setTimeout(() => {
+                document.body.classList.remove('printing-batch');
+            }, 500);
+        }
+
+        // --- JSON Adatmentés Export / Import ---
+<!-- ... existing code ... -->
+                    let importedCount = 0;
+                    for (const item of recordsToImport) {
+                        if (item.id && item.serial && item.date) {
+                            await saveRecordToDB(item);
+                            importedCount++;
+                        }
+                    }
+
+                    await loadRecordsFromDB();
+<!-- ... existing code ... -->
